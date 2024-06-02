@@ -13,11 +13,6 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = CustomUser
         fields = ("email",)
-# class CustomChangeUserForm(UserChangeForm):
-
-#     class Meta:
-#         model = CustomUser
-#         fields = ("name", "email", "password",)
 
 class LoginForm(forms.Form):
     email = forms.EmailField()

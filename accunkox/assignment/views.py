@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework import permissions, filters
+from rest_framework import permissions, filters, throttling
 
 # Create your views here.
 
@@ -45,13 +45,6 @@ def user_logout(request):
     logout(request)
     return redirect('login')
 
-
-# def friend_request(request, email):
-#     user = CustomUser.objects.filter(email=email)
-#     if user and user != request.user:
-#         FriendRequest.objects.create(status=False, to_user = user.first(), from_user=request.user)
-#     return HttpResponse(f'<h3>Friend Request sent to {email} </h3>')
-
 class UserAPIView(generics.ListAPIView):
     """
     API endpoint that allows users to be viewed or edited.
@@ -63,7 +56,6 @@ class UserAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
-# users/views.py
 class FriendRequestCreateView(generics.CreateAPIView):
     serializer_class = FriendRequestSerializer
     queryset = FriendRequest.objects.all()
@@ -91,6 +83,8 @@ class FriendsView(generics.ListAPIView):
 class FriendRequestAcceptView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FriendRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [throttling.UserRateThrottle, throttling.ScopedRateThrottle]
+    throttle_scope = 'custom'
 
     def update(self, request, *args, **kwargs):
         from_user = CustomUser.objects.filter(pk=self.kwargs['pk']).first()
@@ -104,8 +98,11 @@ class FriendRequestAcceptView(generics.RetrieveUpdateDestroyAPIView):
             return Response(FriendRequestSerializer(instance).data)
         return Response({"detail": "You are already a friend or No user exists."})
 
-    # def delete(self, request, *args, **kwargs):
-    #     return super().delete(request, *args, **kwargs)
+    def delete(self, request, *args, **kwargs):
+        from_user = CustomUser.objects.filter(pk=self.kwargs['pk']).first()
+        instance = FriendRequest.objects.filter(status=False, to_user=self.request.user, from_user=from_user)
+        instance.delete()
+        return Response({'detail':'Friend Request Deleted!'})
 
     def get_queryset(self):
         return FriendRequest.objects.filter(status=False, to_user=self.request.user)

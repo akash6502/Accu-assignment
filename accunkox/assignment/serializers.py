@@ -6,9 +6,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         exclude = ('password', 'last_login', 'groups' ,'user_permissions')
 
-# users/serializers.py
-
-
 class FriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
