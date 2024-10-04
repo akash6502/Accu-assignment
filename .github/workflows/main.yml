@@ -22,17 +22,3 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt  # Ensure you have a requirements.txt
-
-      - name: Run tests
-        run: |
-          python manage.py test  # Run your tests
-
-      - name: Deploy to server
-        env:
-          HOST: ${{ secrets.SSH_HOST }}
-          USER: ${{ secrets.SSH_USER }}
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          echo "$PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          ssh -i private_key.pem $USER@$HOST 'bash -s' < deploy_script.sh  # Adjust your deployment script
